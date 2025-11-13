@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b803316317acb0a4bb70ff572937f944, type: 3}
+  m_Name: ServerConstants
+  m_EditorClassIdentifier: 
+  baseUrl: https://flamingoacdmy.com/api/v1
+  loginApiURL: /auth/login/
+  registerApiURL: /auth/register/
+  verifyOTPURL: /auth/otp/verify/
+  otpResendURL: /auth/otp/resend/
+  updateProfileURL: /auth/profile/
+  spinApiURL: /auth/spins/
+  UserProfileData:
+    token: 4b767ae0b6c694c6f330765c750433e3c7aedb539e111ae1629671418a972a20
+    email: xynova.net@gmail.com
+    first_name: Xynova x
+    last_name: studios
+    age: 0
+    region: 
+    gender: 
+    rewards: 
+    points: 0
+  version: 1.0
