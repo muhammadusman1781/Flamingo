@@ -1,12 +1,20 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+using RTLTMPro;
 
 public class LobbyScreen : MonoBehaviour
 {
     [Header("References")]
     public GameObject gameplayScreen;
     private ServerConstants serverConstants;
+
+    [Header("Room Code UI")]
+    public GameObject roomCodePanel;
+    public RTLTextMeshPro roomCodeText;
+    public Button copyToClipboardButton;
 
     [Header("Room Data")]
     public JoinRoomResponse joinRoomResponse;
@@ -16,6 +24,15 @@ public class LobbyScreen : MonoBehaviour
     public float pollInterval = 3f;
     private Coroutine pollingCoroutine;
     private bool isPolling = false;
+
+    private void Start()
+    {
+        // Setup copy to clipboard button
+        if (copyToClipboardButton != null)
+        {
+            copyToClipboardButton.onClick.AddListener(OnCopyToClipboardButtonClick);
+        }
+    }
 
     // Method to set room data from RoomSelection
     public void SetRoomData(JoinRoomResponse response)
@@ -30,10 +47,14 @@ public class LobbyScreen : MonoBehaviour
             Debug.Log($"Room Type: {joinRoomResponse.data.room_type}");
             Debug.Log($"Level: {joinRoomResponse.data.level}");
             Debug.Log($"Player 1: {joinRoomResponse.data.player1_name} (ID: {joinRoomResponse.data.player1})");
+            Debug.Log($"Room Code: {joinRoomResponse.data.room_code}");
             
             // Debug initial player2 data
             Debug.Log($"[SetRoomData] Initial Player2 Value: {joinRoomResponse.data.player2}");
             Debug.Log($"[SetRoomData] Initial Player2 Name: '{joinRoomResponse.data.player2_name}'");
+
+            // Show room code panel if this is a private room (has room code)
+            UpdateRoomCodeUI();
             
             if (joinRoomResponse.data.player2 > 0 && !string.IsNullOrEmpty(joinRoomResponse.data.player2_name))
             {
@@ -67,7 +88,43 @@ public class LobbyScreen : MonoBehaviour
         // player1NameText.text = CurrentRoomData.player1_name;
         // levelText.text = $"Level: {CurrentRoomData.level}";
         
+        UpdateRoomCodeUI();
         Debug.Log("LobbyScreen: UI updated with room data");
+    }
+
+    private void UpdateRoomCodeUI()
+    {
+        if (CurrentRoomData == null) return;
+
+        // Show room code panel only if room code is not empty (private match)
+        bool hasRoomCode = !string.IsNullOrEmpty(CurrentRoomData.room_code);
+        
+        if (roomCodePanel != null)
+        {
+            roomCodePanel.SetActive(hasRoomCode);
+        }
+
+        if (hasRoomCode && roomCodeText != null)
+        {
+            roomCodeText.text = CurrentRoomData.room_code;
+            Debug.Log($"Room code displayed: {CurrentRoomData.room_code}");
+        }
+    }
+
+    private void OnCopyToClipboardButtonClick()
+    {
+        if (CurrentRoomData != null && !string.IsNullOrEmpty(CurrentRoomData.room_code))
+        {
+            GUIUtility.systemCopyBuffer = CurrentRoomData.room_code;
+            Debug.Log($"Room code copied to clipboard: {CurrentRoomData.room_code}");
+            
+            // Optionally show a toast/notification to user
+            // ShowToast("Room code copied!");
+        }
+        else
+        {
+            Debug.LogWarning("No room code available to copy");
+        }
     }
 
     private void OnEnable()

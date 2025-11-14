@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
+using RTLTMPro;
 
 public class RoomSelection : MonoBehaviour
 {
@@ -14,6 +16,12 @@ public class RoomSelection : MonoBehaviour
     public List<GameMode> GameModes => gameModesResponse?.data;
 
     public Button BackButton;
+
+    [Header("Room Code Input")]
+    public TMP_InputField roomCodeInputField;
+
+    [Header("Match Mode")]
+    private bool isPrivateMatch = false; // true for private with friends, false for public
 
     // Each room now has a button and a name (RoomEntry pattern)
     [System.Serializable]
@@ -36,6 +44,12 @@ public class RoomSelection : MonoBehaviour
     public void OnBackButtonClick()
     {
         gameObject.SetActive(false);
+    }
+
+    public void SetMatchMode(bool isPrivateMatch)
+    {
+        this.isPrivateMatch = isPrivateMatch;
+        Debug.Log($"RoomSelection match mode set to: {(isPrivateMatch ? "Private" : "Public")}");
     }
 
     private void OnEnable()
@@ -184,8 +198,34 @@ public class RoomSelection : MonoBehaviour
 
         Debug.Log($"Matched game mode: {matchedGameMode.game_name} with ID: {matchedGameMode.game_id}");
         
-        // Call join room API with the matched game_id
-        JoinRoom(matchedGameMode.game_id);
+        // Check if room code input field has a value
+        string roomCode = GetRoomCodeFromInput();
+        
+        if (!string.IsNullOrEmpty(roomCode))
+        {
+            // Join a private room using room code
+            Debug.Log($"Room code provided: {roomCode}. Joining private room...");
+            JoinRoomWithCode(matchedGameMode.game_id, roomCode);
+        }
+        else if (isPrivateMatch)
+        {
+            // Create a private room with friends
+            CreatePrivateRoom(matchedGameMode.game_id);
+        }
+        else
+        {
+            // Join a public room
+            JoinRoom(matchedGameMode.game_id);
+        }
+    }
+
+    private string GetRoomCodeFromInput()
+    {
+        if (roomCodeInputField != null && !string.IsNullOrEmpty(roomCodeInputField.text))
+        {
+            return roomCodeInputField.text.Trim().ToUpper();
+        }
+        return string.Empty;
     }
 
     private void JoinRoom(string gameModeId)
@@ -208,7 +248,7 @@ public class RoomSelection : MonoBehaviour
             return;
         }
 
-        // Create request object
+        // Create request object (without room code for public match)
         JoinRoomRequest request = new JoinRoomRequest
         {
             game_mode = gameModeId
@@ -220,7 +260,60 @@ public class RoomSelection : MonoBehaviour
         // API URL
         string apiUrl = serverConstants.baseUrl + "/multiplayer/rooms/join/";
         
-        Debug.Log($"Joining room with game_mode: {gameModeId}");
+        Debug.Log($"Joining public room with game_mode: {gameModeId}");
+        Debug.Log($"Request JSON: {jsonToSend}");
+        Debug.Log($"API URL: {apiUrl}");
+
+        // Call POST API
+        NetworkingHandler.instance.postMessage(
+            apiUrl,
+            jsonToSend,
+            isTokenNeeded: true,
+            onSuccess: OnJoinRoomSuccess,
+            onFail: OnJoinRoomFail
+        );
+    }
+
+    private void JoinRoomWithCode(string gameModeId, string roomCode)
+    {
+        if (string.IsNullOrEmpty(gameModeId))
+        {
+            Debug.LogError("Game mode ID is null or empty!");
+            return;
+        }
+
+        if (string.IsNullOrEmpty(roomCode))
+        {
+            Debug.LogError("Room code is null or empty!");
+            return;
+        }
+
+        if (NetworkingHandler.instance == null)
+        {
+            Debug.LogError("NetworkingHandler instance is not available!");
+            return;
+        }
+
+        if (serverConstants == null)
+        {
+            Debug.LogError("ServerConstants is not assigned!");
+            return;
+        }
+
+        // Create request object with room code
+        JoinRoomRequest request = new JoinRoomRequest
+        {
+            game_mode = gameModeId,
+            room_code = roomCode
+        };
+
+        // Convert to JSON
+        string jsonToSend = JsonUtility.ToJson(request);
+        
+        // API URL
+        string apiUrl = serverConstants.baseUrl + "/multiplayer/rooms/join/";
+        
+        Debug.Log($"Joining private room with game_mode: {gameModeId} and room_code: {roomCode}");
         Debug.Log($"Request JSON: {jsonToSend}");
         Debug.Log($"API URL: {apiUrl}");
 
@@ -277,6 +370,101 @@ public class RoomSelection : MonoBehaviour
     private void OnJoinRoomFail(string error)
     {
         Debug.LogError($"Failed to join room: {error}");
+        // You can show an error UI here
+    }
+
+    private void CreatePrivateRoom(string gameModeId)
+    {
+        if (string.IsNullOrEmpty(gameModeId))
+        {
+            Debug.LogError("Game mode ID is null or empty!");
+            return;
+        }
+
+        if (NetworkingHandler.instance == null)
+        {
+            Debug.LogError("NetworkingHandler instance is not available!");
+            return;
+        }
+
+        if (serverConstants == null)
+        {
+            Debug.LogError("ServerConstants is not assigned!");
+            return;
+        }
+
+        // Create request object for private room
+        CreateRoomRequest request = new CreateRoomRequest
+        {
+            game_mode = gameModeId,
+            room_type = "friends"
+        };
+
+        // Convert to JSON
+        string jsonToSend = JsonUtility.ToJson(request);
+        
+        // API URL
+        string apiUrl = serverConstants.baseUrl + "/multiplayer/rooms/create/";
+        
+        Debug.Log($"Creating private room with game_mode: {gameModeId}");
+        Debug.Log($"Request JSON: {jsonToSend}");
+        Debug.Log($"API URL: {apiUrl}");
+
+        // Call POST API
+        NetworkingHandler.instance.postMessage(
+            apiUrl,
+            jsonToSend,
+            isTokenNeeded: true,
+            onSuccess: OnCreatePrivateRoomSuccess,
+            onFail: OnCreatePrivateRoomFail
+        );
+    }
+
+    private void OnCreatePrivateRoomSuccess(string response)
+    {
+        Debug.Log($"Create private room successful: {response}");
+
+        try
+        {
+            JoinRoomResponse createRoomResponse = JsonUtility.FromJson<JoinRoomResponse>(response);
+
+            if (createRoomResponse != null && createRoomResponse.data != null)
+            {
+                Debug.Log($"Private room created successfully: {createRoomResponse.message}");
+                Debug.Log($"Room slug: {createRoomResponse.data.slug}");
+                Debug.Log($"Game mode: {createRoomResponse.data.game_mode_name}");
+                Debug.Log($"Room code: {createRoomResponse.data.room_code}");
+                Debug.Log($"Room type: {createRoomResponse.data.room_type}");
+                Debug.Log($"Player 1: {createRoomResponse.data.player1_name}");
+
+                // Pass the response to LobbyScreen (same as join room)
+                if (lobbyScreen != null)
+                {
+                    lobbyScreen.SetRoomData(createRoomResponse);
+                    lobbyScreen.gameObject.SetActive(true);
+                    
+                    // Optionally hide this screen
+                    // gameObject.SetActive(false);
+                }
+                else
+                {
+                    Debug.LogError("LobbyScreen reference is not assigned!");
+                }
+            }
+            else
+            {
+                Debug.LogError("Failed to parse create room response or data is null");
+            }
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError($"Error parsing create room response: {ex.Message}");
+        }
+    }
+
+    private void OnCreatePrivateRoomFail(string error)
+    {
+        Debug.LogError($"Failed to create private room: {error}");
         // You can show an error UI here
     }
 

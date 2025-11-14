@@ -28,6 +28,15 @@ public class GameMode
 public class JoinRoomRequest
 {
     public string game_mode;
+    public string room_code; // Optional: for joining private rooms with code
+}
+
+// Create Room Request
+[Serializable]
+public class CreateRoomRequest
+{
+    public string game_mode;
+    public string room_type;
 }
 
 // Join Room Response
@@ -137,4 +146,83 @@ public class GameResultsData
     public string result; // 'win', 'lose', 'tie', or null
     public int winner_id;
     public string winner_name;
+}
+
+// Users List Response
+[Serializable]
+public class UsersListResponse
+{
+    public string status;
+    public string message;
+    public List<UserData> data;
+}
+
+[Serializable]
+public class UserData
+{
+    public int id;
+    public string email;
+    public string mobile;
+    public string first_name;
+    public string last_name;
+}
+
+// Send Friend Request
+[Serializable]
+public class SendFriendRequest
+{
+    public int receiver_id;
+}
+
+// Send Friend Request Response
+[Serializable]
+public class SendFriendRequestResponse
+{
+    public string status;
+    public string message;
+    public string data;
+}
+
+// Friends List Response
+[Serializable]
+public class FriendsListResponse
+{
+    public string status;
+    public string message;
+    public List<UserData> data;
+}
+
+// Friend Requests Response
+[Serializable]
+public class FriendRequestsResponse
+{
+    public string status;
+    public string message;
+    public FriendRequestsData data;
+}
+
+[Serializable]
+public class FriendRequestsData
+{
+    public List<FriendRequestData> received_requests;
+    public List<FriendRequestData> sent_requests;
+}
+
+[Serializable]
+public class FriendRequestData
+{
+    public int id;
+    public UserData sender;
+    public UserData receiver;
+    public string status;
+    public string created_at;
+    public string updated_at;
+}
+
+// Accept/Reject Friend Request Response
+[Serializable]
+public class FriendRequestActionResponse
+{
+    public string status;
+    public string message;
 }

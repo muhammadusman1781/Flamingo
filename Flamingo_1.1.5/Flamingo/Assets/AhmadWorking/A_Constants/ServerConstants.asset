@@ -20,7 +20,7 @@ MonoBehaviour:
   updateProfileURL: /auth/profile/
   spinApiURL: /auth/spins/
   UserProfileData:
-    token: 4b767ae0b6c694c6f330765c750433e3c7aedb539e111ae1629671418a972a20
+    token: 106eaddaa93722357cbffc8b30a6f69553f071c2b0344aa35ff82eb5db1c9b25
     email: xynova.net@gmail.com
     first_name: Xynova x
     last_name: studios
