@@ -226,3 +226,117 @@ public class FriendRequestActionResponse
     public string status;
     public string message;
 }
+
+// User Profile Response
+[Serializable]
+public class UserProfileResponse
+{
+    public string status;
+    public string message;
+    public UserProfileData data;
+}
+
+[Serializable]
+public class UserProfileData
+{
+    public int id;
+    public string email;
+    public string mobile;
+    public string first_name;
+    public string last_name;
+    public int age;
+    public string region;
+    public string gender;
+    public List<object> rewards;
+    public int points;
+    public int grade;
+    public int feathers;
+    public int win;
+    public int lose;
+    public int friends_count;
+    public List<UserFeather> user_feathers;
+}
+
+[Serializable]
+public class UserFeather
+{
+    public int id;
+    public int feather;
+    public string feather_type;
+}
+
+// Helper class for feather priorities
+public static class FeatherPriority
+{
+    private static readonly Dictionary<string, int> priorities = new Dictionary<string, int>
+    {
+        { "Legendary", 1 },
+        { "Emerald", 2 },
+        { "Ruby", 3 },
+        { "Mercury", 4 },
+        { "Diamond", 5 },
+        { "Titanium", 6 },
+        { "Platinum", 7 },
+        { "Golden", 8 },
+        { "Silver", 9 },
+        { "Bronze", 10 }
+    };
+
+    public static int GetPriority(string featherType)
+    {
+        if (priorities.ContainsKey(featherType))
+            return priorities[featherType];
+        return 999; // Unknown types get lowest priority
+    }
+
+    public static List<UserFeather> SortByPriority(List<UserFeather> feathers)
+    {
+        if (feathers == null) return new List<UserFeather>();
+        
+        var sorted = new List<UserFeather>(feathers);
+        sorted.Sort((a, b) => GetPriority(a.feather_type).CompareTo(GetPriority(b.feather_type)));
+        return sorted;
+    }
+}
+
+// Leaderboard Response
+[Serializable]
+public class LeaderboardResponse
+{
+    public string status;
+    public string message;
+    public LeaderboardData data;
+}
+
+[Serializable]
+public class LeaderboardData
+{
+    public List<TopThreePlayer> top_three;
+    public List<RemainingPlayer> remaining;
+}
+
+[Serializable]
+public class TopThreePlayer
+{
+    public string profile_picture;
+    public string player_name;
+    public int rank;
+    public string border_type;
+}
+
+[Serializable]
+public class RemainingPlayer
+{
+    public string profile_picture;
+    public string player_name;
+    public int coins;
+    public int rank;
+}
+
+// Delete Room Response
+[Serializable]
+public class DeleteRoomResponse
+{
+    public string status;
+    public string message;
+}

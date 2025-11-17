@@ -15,6 +15,9 @@ public class LobbyScreen : MonoBehaviour
     public GameObject roomCodePanel;
     public RTLTextMeshPro roomCodeText;
     public Button copyToClipboardButton;
+    
+    [Header("Navigation")]
+    public Button backButton;
 
     [Header("Room Data")]
     public JoinRoomResponse joinRoomResponse;
@@ -24,6 +27,10 @@ public class LobbyScreen : MonoBehaviour
     public float pollInterval = 3f;
     private Coroutine pollingCoroutine;
     private bool isPolling = false;
+    
+    // Track how we joined the room for polling
+    private string joinGameMode;
+    private string joinRoomCode; // null or empty if joined without code
 
     private void Start()
     {
@@ -32,12 +39,20 @@ public class LobbyScreen : MonoBehaviour
         {
             copyToClipboardButton.onClick.AddListener(OnCopyToClipboardButtonClick);
         }
+        
+        // Setup back button
+        if (backButton != null)
+        {
+            backButton.onClick.AddListener(OnBackButtonClick);
+        }
     }
 
     // Method to set room data from RoomSelection
-    public void SetRoomData(JoinRoomResponse response)
+    public void SetRoomData(JoinRoomResponse response, string gameMode, string roomCode = null)
     {
         joinRoomResponse = response;
+        joinGameMode = gameMode;
+        joinRoomCode = roomCode;
         
         if (joinRoomResponse != null && joinRoomResponse.data != null)
         {
@@ -48,6 +63,8 @@ public class LobbyScreen : MonoBehaviour
             Debug.Log($"Level: {joinRoomResponse.data.level}");
             Debug.Log($"Player 1: {joinRoomResponse.data.player1_name} (ID: {joinRoomResponse.data.player1})");
             Debug.Log($"Room Code: {joinRoomResponse.data.room_code}");
+            Debug.Log($"Join Game Mode: {joinGameMode}");
+            Debug.Log($"Join Room Code: {(string.IsNullOrEmpty(joinRoomCode) ? "None" : joinRoomCode)}");
             
             // Debug initial player2 data
             Debug.Log($"[SetRoomData] Initial Player2 Value: {joinRoomResponse.data.player2}");
@@ -229,13 +246,27 @@ public class LobbyScreen : MonoBehaviour
             return;
         }
 
-        // Create the join request again to check room status
-        JoinRoomRequest request = new JoinRoomRequest
+        string jsonToSend;
+        
+        // Use the same join parameters that were used initially
+        if (!string.IsNullOrEmpty(joinRoomCode))
         {
-            game_mode = CurrentRoomData.game_mode
-        };
+            // Joined with room code - poll with game_mode and room_code
+            JoinRoomRequest request = new JoinRoomRequest
+            {
+                game_mode = joinGameMode,
+                room_code = joinRoomCode
+            };
+            jsonToSend = JsonUtility.ToJson(request);
+            Debug.Log($"[CheckRoomStatus] Polling with game_mode and room_code: {joinRoomCode}");
+        }
+        else
+        {
+            // Joined without room code - poll with game_mode only
+            jsonToSend = $"{{\"game_mode\":\"{joinGameMode}\"}}";
+            Debug.Log($"[CheckRoomStatus] Polling with game_mode only");
+        }
 
-        string jsonToSend = JsonUtility.ToJson(request);
         string apiUrl = serverConstants.baseUrl + "/multiplayer/rooms/join/";
 
         Debug.Log($"[CheckRoomStatus] Calling join API to check room status");
@@ -364,5 +395,85 @@ public class LobbyScreen : MonoBehaviour
     {
         if (joinRoomResponse == null) return "No room data";
         return joinRoomResponse.message;
+    }
+    
+    private void OnBackButtonClick()
+    {
+        // Stop polling before deleting room
+        StopPolling();
+        
+        // Delete the room
+        DeleteRoom();
+    }
+    
+    private void DeleteRoom()
+    {
+        if (serverConstants == null)
+        {
+            Debug.LogError("ServerConstants is null!");
+            GoBackToPreviousScreen();
+            return;
+        }
+        
+        if (CurrentRoomData == null)
+        {
+            Debug.LogError("Current room data is null!");
+            GoBackToPreviousScreen();
+            return;
+        }
+        
+        string roomSlug = CurrentRoomData.slug;
+        string apiUrl = serverConstants.baseUrl + $"/multiplayer/rooms/{roomSlug}/delete/";
+        
+        Debug.Log($"Deleting room: {roomSlug}");
+        Debug.Log($"API URL: {apiUrl}");
+        
+        NetworkingHandler.instance.deleteMessage(
+            apiUrl,
+            isTokenNeeded: true,
+            onSuccess: OnDeleteRoomSuccess,
+            onFail: OnDeleteRoomFail
+        );
+    }
+    
+    private void OnDeleteRoomSuccess(string response)
+    {
+        Debug.Log($"Room deleted successfully: {response}");
+        
+        try
+        {
+            DeleteRoomResponse deleteResponse = JsonUtility.FromJson<DeleteRoomResponse>(response);
+            
+            if (deleteResponse != null)
+            {
+                Debug.Log($"Delete status: {deleteResponse.status}");
+                Debug.Log($"Delete message: {deleteResponse.message}");
+            }
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError($"Error parsing delete room response: {ex.Message}");
+        }
+        
+        // Go back to previous screen after successful deletion
+        GoBackToPreviousScreen();
+    }
+    
+    private void OnDeleteRoomFail(string error)
+    {
+        Debug.LogError($"Failed to delete room: {error}");
+        
+        // Still go back even if delete fails (room might already be deleted or not exist)
+        GoBackToPreviousScreen();
+    }
+    
+    private void GoBackToPreviousScreen()
+    {
+        // Hide lobby screen
+        gameObject.SetActive(false);
+        
+        // Optionally, you can navigate to a specific screen here
+        // For example, if you have a reference to the previous screen:
+        // previousScreen.SetActive(true);
     }
 }

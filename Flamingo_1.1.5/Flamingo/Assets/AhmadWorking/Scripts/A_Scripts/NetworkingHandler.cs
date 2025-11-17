@@ -50,6 +50,11 @@ public class NetworkingHandler : MonoBehaviour
         StartCoroutine(GetAPIMessage(apiUrl, isTokenNeeded, onSuccess, onFail));
     }
 
+    public void deleteMessage(string apiUrl, bool isTokenNeeded, Action<string> onSuccess = null, Action<string> onFail = null)
+    {
+        StartCoroutine(DeleteAPIMessage(apiUrl, isTokenNeeded, onSuccess, onFail));
+    }
+
     private IEnumerator PostAPIMessage(string apiUrl, string jsonToSend, bool isTokenNeeded, Action<string> onSuccess = null, Action<string> onFail = null)
     {
         Debug.Log($"Posting to: {apiUrl}");
@@ -60,7 +65,7 @@ public class NetworkingHandler : MonoBehaviour
             onFail?.Invoke("No internet connectivity");
             yield break;
         }
-
+        Debug.Log(jsonToSend);
         int attempts = 0;
         while (attempts <= retryCount)
         {
@@ -212,6 +217,57 @@ public class NetworkingHandler : MonoBehaviour
             else
             {
                 Debug.Log($"HTTP {(long)uwr.responseCode} GET {apiUrl} | Body: {uwr.downloadHandler.text}");
+                onSuccess?.Invoke(uwr.downloadHandler.text);
+            }
+            break;
+        }
+    }
+
+    private IEnumerator DeleteAPIMessage(string apiUrl, bool isTokenNeeded, Action<string> onSuccess = null, Action<string> onFail = null)
+    {
+        int attempts = 0;
+        while (attempts <= retryCount)
+        {
+            var uwr = new UnityWebRequest(apiUrl, "DELETE");
+            uwr.downloadHandler = new DownloadHandlerBuffer();
+            uwr.timeout = Mathf.Max(5, requestTimeoutSeconds);
+
+            if (allowInsecureCertificates)
+            {
+                uwr.certificateHandler = new InsecureCertificateHandler();
+            }
+
+            uwr.redirectLimit = 4;
+            uwr.SetRequestHeader("User-Agent", "UnityPlayer");
+
+            if (isTokenNeeded)
+            {
+                uwr.SetRequestHeader("Authorization", $"token {serverConstants.UserProfileData.token}");
+            }
+
+            uwr.SetRequestHeader("Content-Type", "application/json");
+            uwr.SetRequestHeader("accept", "application/json");
+
+            yield return uwr.SendWebRequest();
+
+#if UNITY_2020_1_OR_NEWER
+            if (uwr.result == UnityWebRequest.Result.ConnectionError || uwr.result == UnityWebRequest.Result.ProtocolError)
+#else
+            if (uwr.isNetworkError || uwr.isHttpError)
+#endif
+            {
+                Debug.LogError($"HTTP {(long)uwr.responseCode} DELETE {apiUrl} -> {uwr.error} | Body: {uwr.downloadHandler.text}");
+                if (attempts < retryCount)
+                {
+                    attempts++;
+                    yield return new WaitForSeconds(0.75f * attempts);
+                    continue;
+                }
+                onFail?.Invoke(uwr.downloadHandler.text);
+            }
+            else
+            {
+                Debug.Log($"HTTP {(long)uwr.responseCode} DELETE {apiUrl} | Body: {uwr.downloadHandler.text}");
                 onSuccess?.Invoke(uwr.downloadHandler.text);
             }
             break;

@@ -20,10 +20,10 @@ MonoBehaviour:
   updateProfileURL: /auth/profile/
   spinApiURL: /auth/spins/
   UserProfileData:
-    token: 106eaddaa93722357cbffc8b30a6f69553f071c2b0344aa35ff82eb5db1c9b25
-    email: xynova.net@gmail.com
-    first_name: Xynova x
-    last_name: studios
+    token: 
+    email: muhammadusman1781@gmail.com
+    first_name: Usman
+    last_name: Hanif
     age: 0
     region: 
     gender: 

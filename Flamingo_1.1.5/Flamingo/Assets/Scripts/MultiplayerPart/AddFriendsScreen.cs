@@ -327,8 +327,8 @@ public class AddFriendsScreen : MonoBehaviour
         
         // Check if there's a user named "Usman" or contains "usman" (case-insensitive) in filtered list
         UserData usmanUser = filteredUsers.Find(u => 
-            (!string.IsNullOrEmpty(u.first_name) && u.first_name.ToLower().Contains("usman")) ||
-            (!string.IsNullOrEmpty(u.last_name) && u.last_name.ToLower().Contains("usman"))
+            (!string.IsNullOrEmpty(u.first_name) && u.first_name.ToLower().Contains("test")) ||
+            (!string.IsNullOrEmpty(u.last_name) && u.last_name.ToLower().Contains("user"))
         );
 
         List<UserData> usersToShow = new List<UserData>();

@@ -4,6 +4,7 @@ using UnityEngine.SceneManagement;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using TMPro;
 
 public class OnboardingManager : MonoBehaviour
 {
@@ -714,11 +715,11 @@ public class OnboardingManager : MonoBehaviour
         return !string.IsNullOrEmpty(password) && Regex.IsMatch(password, PasswordRegexPattern);
     }
     
-    private void ConfigurePasswordField(InputField passwordField)
+    private void ConfigurePasswordField(TMP_InputField passwordField)
     {
         if (passwordField != null)
         {
-            passwordField.contentType = InputField.ContentType.Password;
+            passwordField.contentType = TMP_InputField.ContentType.Password;
             passwordField.asteriskChar = '*';
         }
     }

@@ -201,20 +201,22 @@ public class RoomSelection : MonoBehaviour
         // Check if room code input field has a value
         string roomCode = GetRoomCodeFromInput();
         
-        if (!string.IsNullOrEmpty(roomCode))
+        // Priority 1: If private match mode is enabled, create a private room
+        if (isPrivateMatch)
         {
-            // Join a private room using room code
-            Debug.Log($"Room code provided: {roomCode}. Joining private room...");
-            JoinRoomWithCode(matchedGameMode.game_id, roomCode);
-        }
-        else if (isPrivateMatch)
-        {
-            // Create a private room with friends
+            Debug.Log("Private match mode enabled. Creating private room...");
             CreatePrivateRoom(matchedGameMode.game_id);
         }
+        // Priority 2: If room code is provided, join room with code
+        else if (!string.IsNullOrEmpty(roomCode))
+        {
+            Debug.Log($"Room code provided: {roomCode}. Joining room with code...");
+            JoinRoomWithCode(matchedGameMode.game_id, roomCode);
+        }
+        // Priority 3: Default - join public room
         else
         {
-            // Join a public room
+            Debug.Log("No room code and public match mode. Joining public room...");
             JoinRoom(matchedGameMode.game_id);
         }
     }
@@ -248,14 +250,12 @@ public class RoomSelection : MonoBehaviour
             return;
         }
 
-        // Create request object (without room code for public match)
-        JoinRoomRequest request = new JoinRoomRequest
-        {
-            game_mode = gameModeId
-        };
+        // Store join parameters for lobby screen
+        lastJoinGameMode = gameModeId;
+        lastJoinRoomCode = null;
 
-        // Convert to JSON
-        string jsonToSend = JsonUtility.ToJson(request);
+        // Create JSON manually to only include game_mode (no room_code field)
+        string jsonToSend = $"{{\"game_mode\":\"{gameModeId}\"}}";
         
         // API URL
         string apiUrl = serverConstants.baseUrl + "/multiplayer/rooms/join/";
@@ -300,6 +300,10 @@ public class RoomSelection : MonoBehaviour
             return;
         }
 
+        // Store join parameters for lobby screen
+        lastJoinGameMode = gameModeId;
+        lastJoinRoomCode = roomCode;
+
         // Create request object with room code
         JoinRoomRequest request = new JoinRoomRequest
         {
@@ -327,6 +331,10 @@ public class RoomSelection : MonoBehaviour
         );
     }
 
+    // Track the last join request for passing to lobby screen
+    private string lastJoinGameMode;
+    private string lastJoinRoomCode;
+
     private void OnJoinRoomSuccess(string response)
     {
         Debug.Log($"Join room successful: {response}");
@@ -342,10 +350,10 @@ public class RoomSelection : MonoBehaviour
                 Debug.Log($"Game mode: {joinRoomResponse.data.game_mode_name}");
                 Debug.Log($"Player 1: {joinRoomResponse.data.player1_name}");
 
-                // Pass the response to LobbyScreen
+                // Pass the response to LobbyScreen with join parameters
                 if (lobbyScreen != null)
                 {
-                    lobbyScreen.SetRoomData(joinRoomResponse);
+                    lobbyScreen.SetRoomData(joinRoomResponse, lastJoinGameMode, lastJoinRoomCode);
                     lobbyScreen.gameObject.SetActive(true);
                     
                     // Optionally hide this screen
@@ -393,6 +401,9 @@ public class RoomSelection : MonoBehaviour
             return;
         }
 
+        // Store game mode for lobby screen (room code will come from response)
+        lastJoinGameMode = gameModeId;
+
         // Create request object for private room
         CreateRoomRequest request = new CreateRoomRequest
         {
@@ -437,10 +448,11 @@ public class RoomSelection : MonoBehaviour
                 Debug.Log($"Room type: {createRoomResponse.data.room_type}");
                 Debug.Log($"Player 1: {createRoomResponse.data.player1_name}");
 
-                // Pass the response to LobbyScreen (same as join room)
+                // Pass the response to LobbyScreen with game_mode and room_code
+                // When polling, lobby should use game_mode + room_code from the created room
                 if (lobbyScreen != null)
                 {
-                    lobbyScreen.SetRoomData(createRoomResponse);
+                    lobbyScreen.SetRoomData(createRoomResponse, lastJoinGameMode, createRoomResponse.data.room_code);
                     lobbyScreen.gameObject.SetActive(true);
                     
                     // Optionally hide this screen

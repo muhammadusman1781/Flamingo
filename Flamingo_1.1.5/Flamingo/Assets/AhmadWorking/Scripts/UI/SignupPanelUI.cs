@@ -6,9 +6,9 @@ using UnityEngine.UI;
 public class SignupPanelUI
 {
     public GameObject signupPanel;
-    public InputField signupEmailPhoneInput;
-    public InputField signupPasswordInput;
-    public InputField signupConfirmPasswordInput;
+    public TMP_InputField signupEmailPhoneInput;
+    public TMP_InputField signupPasswordInput;
+    public TMP_InputField signupConfirmPasswordInput;
     public Button signupSubmitButton;
     public Button backToLoginButton;
     public TMP_Text signupErrorText;
