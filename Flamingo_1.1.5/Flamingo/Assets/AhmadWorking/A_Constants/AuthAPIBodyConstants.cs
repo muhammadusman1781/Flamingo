@@ -74,6 +74,7 @@ public class UpdateProfilePostBody
     public string first_name;
     public string last_name;
     public int age;
+    public int grade;
     public string region;
     public string gender;
 }

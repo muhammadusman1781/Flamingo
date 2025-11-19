@@ -321,11 +321,13 @@ public class QuizUIController : MonoBehaviour
 
         if (isCorrect)
         {
+            SoundsManager.Instance.PlayAnswerTrueSound();
             correctAnswers++;
             score += 10;
         }
         else
         {
+            SoundsManager.Instance.PlayAnswerFalseSound();
             wrongAnswers++;
             
             if (!continueUsedThisLevel && note != null)
@@ -536,6 +538,7 @@ public class QuizUIController : MonoBehaviour
         {
             resultManager.ShowResult(resultData);
         }
+        SoundsManager.Instance.PlayLevelCompleteSound();
     }
 
     public void ResumeAfterLoss()

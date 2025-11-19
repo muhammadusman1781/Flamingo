@@ -48,12 +48,40 @@ public class ProfileScreen : MonoBehaviour
         {
             showMoreFeathersButton.onClick.AddListener(OnShowMoreFeathersClicked);
         }
-        
-        // Load user profile
-        LoadUserProfile();
     }
     
-    private void LoadUserProfile()
+    private void OnEnable()
+    {
+        // Load user profile from cached data in ServerConstants
+        LoadUserProfileFromCache();
+    }
+    
+    private void LoadUserProfileFromCache()
+    {
+        if (NetworkingHandler.instance == null || NetworkingHandler.instance.serverConstants == null)
+        {
+            Debug.LogError("NetworkingHandler or ServerConstants is null!");
+            return;
+        }
+        
+        // Get the cached profile data from ServerConstants
+        currentUserProfile = NetworkingHandler.instance.serverConstants.FullUserProfile;
+        
+        if (currentUserProfile != null)
+        {
+            // Profile data is already loaded, just update UI
+            UpdateUI();
+        }
+        else
+        {
+            Debug.LogWarning("User profile not yet loaded. Waiting for HomeScreen to load it.");
+            // Optionally, you could load it here as a fallback
+            // LoadUserProfileFromAPI();
+        }
+    }
+    
+    // Keep this method as a fallback if needed
+    private void LoadUserProfileFromAPI()
     {
         if (serverConstants == null)
         {
@@ -76,7 +104,7 @@ public class ProfileScreen : MonoBehaviour
     
     private void OnUserProfileSuccess(string response)
     {
-        Debug.Log($"User profile received: {response}");
+        Debug.Log($"ProfileScreen - User profile received: {response}");
         
         if (loadingPanel != null)
             loadingPanel.SetActive(false);
@@ -88,6 +116,8 @@ public class ProfileScreen : MonoBehaviour
             if (profileResponse != null && profileResponse.data != null)
             {
                 currentUserProfile = profileResponse.data;
+                // Also update the cache
+                NetworkingHandler.instance.serverConstants.FullUserProfile = profileResponse.data;
                 UpdateUI();
             }
             else

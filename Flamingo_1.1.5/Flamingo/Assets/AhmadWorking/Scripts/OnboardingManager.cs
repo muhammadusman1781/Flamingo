@@ -184,7 +184,20 @@ public class OnboardingManager : MonoBehaviour
         if (profileFormUI != null)
         {
             if (profileFormUI.profileSubmitButton != null) profileFormUI.profileSubmitButton.onClick.AddListener(OnProfileSubmitClicked);
+            if (profileFormUI.MaleButton != null) profileFormUI.MaleButton.onClick.AddListener(onMaleButtonClicked);
+            if (profileFormUI.FemaleButton != null) profileFormUI.FemaleButton.onClick.AddListener(onFemaleButtonClicked);
         }
+    }
+
+    void onMaleButtonClicked()
+    {
+        profileFormUI.isMale = true;
+        profileFormUI.isFemale = false;
+    }
+    void onFemaleButtonClicked()
+    {
+        profileFormUI.isFemale = true;
+        profileFormUI.isMale = false;
     }
 
     void ClearErrorMessages()
@@ -548,9 +561,9 @@ public class OnboardingManager : MonoBehaviour
             profileFormUI.regionInput.text = "";
             profileFormUI.ageInput.text = "";
 
-            profileFormUI.genderDropdown.ClearOptions();
-            profileFormUI.genderDropdown.AddOptions(new System.Collections.Generic.List<string> {
-                "Male", "Female", "Other", "Prefer not to say"
+            profileFormUI.gradeDropdown.ClearOptions();
+            profileFormUI.gradeDropdown.AddOptions(new System.Collections.Generic.List<string> {
+                "4", "5", "6", "7", "8", "9", "10", "11"
             });
 
             if (profileFormUI.profileErrorText != null)
@@ -589,7 +602,8 @@ public class OnboardingManager : MonoBehaviour
         string lastName = profileFormUI.lastNameInput?.text?.Trim() ?? "";
         string region = profileFormUI.regionInput?.text?.Trim() ?? "";
         string ageText = profileFormUI.ageInput?.text?.Trim() ?? "";
-        string gender = profileFormUI.genderDropdown?.options[profileFormUI.genderDropdown.value]?.text ?? "";
+        string gender = profileFormUI.isMale ? "Male" : profileFormUI.isFemale ? "Female" : "Other";
+        int grade = int.Parse(profileFormUI.gradeDropdown.options[profileFormUI.gradeDropdown.value].text);
 
         if (string.IsNullOrEmpty(firstName))
         {
@@ -628,7 +642,7 @@ public class OnboardingManager : MonoBehaviour
 
         if (AuthenticationManager != null)
         {
-            AuthenticationManager.updateProfileFunc(firstName, lastName, age, region, gender);
+            AuthenticationManager.updateProfileFunc(firstName, lastName, age, region, gender, grade);
             // Navigation will be handled by AuthenticationManager after successful update
         }
         else

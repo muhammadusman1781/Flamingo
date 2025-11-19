@@ -115,7 +115,7 @@ public class AuthenticationManager : MonoBehaviour
 
     // AuthenticationManager.cs
 
-    public void updateProfileFunc(string firstName, string lastName, int age, string region, string gender)
+    public void updateProfileFunc(string firstName, string lastName, int age, string region, string gender, int grade)
     {
         UpdateProfilePostBody updateProfilePostBody = new UpdateProfilePostBody();
         updateProfilePostBody.first_name = firstName;
@@ -123,7 +123,7 @@ public class AuthenticationManager : MonoBehaviour
         updateProfilePostBody.age = age;
         updateProfilePostBody.region = region;
         updateProfilePostBody.gender = gender;
-
+        updateProfilePostBody.grade = grade;
         string jsonToSend = JsonUtility.ToJson(updateProfilePostBody);
         NetworkingHandler.instance.putAPIMessage(serverConstants.baseUrl + serverConstants.updateProfileURL, jsonToSend, true,
             onSuccess =>

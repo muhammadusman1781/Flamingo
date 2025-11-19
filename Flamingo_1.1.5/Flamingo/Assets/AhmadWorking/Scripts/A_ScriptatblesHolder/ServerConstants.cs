@@ -18,6 +18,9 @@ public class ServerConstants : ScriptableObject
     #region userData
 
     [Header("User Profile")] public userProfileData UserProfileData;
+    
+    [Header("Full User Profile (with feathers, stats, etc)")]
+    [System.NonSerialized] public UserProfileData FullUserProfile;
 
     #endregion
 
@@ -37,4 +40,5 @@ public class userProfileData
     public string gender;
     public int[] rewards;
     public int points;
+    public int grade;
 }

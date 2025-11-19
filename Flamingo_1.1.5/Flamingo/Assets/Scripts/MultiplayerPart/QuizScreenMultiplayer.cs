@@ -54,6 +54,10 @@ public class QuizScreenMultiplayer : MonoBehaviour
         // Fetch questions from server
         FetchQuestions();
     }
+    void OnEnable()
+    {
+        SoundsManager.Instance.PlayBattleStartSound();
+    }
 
     void Update()
     {
@@ -203,11 +207,13 @@ public class QuizScreenMultiplayer : MonoBehaviour
         // Check if answer is correct by comparing the answer text
         if (selectedAnswerText == currentQuestion.right_answer)
         {
+            SoundsManager.Instance.PlayAnswerTrueSound();
             playerScore++;
             Debug.Log("✓ CORRECT! Score: " + playerScore + " / " + questions.Count);
         }
         else
         {
+            SoundsManager.Instance.PlayAnswerFalseSound();
             Debug.Log("✗ WRONG! Score remains: " + playerScore + " / " + questions.Count);
         }
         Debug.Log("======================");
