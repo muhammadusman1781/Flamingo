@@ -52623,6 +52623,63 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!1001 &682451996
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 8330699176823353026, guid: c3ad454b69e9bb94383838868bead96c, type: 3}
+      propertyPath: m_Name
+      value: ProjectAd
+      objectReference: {fileID: 0}
+    - target: {fileID: 8330699176823353027, guid: c3ad454b69e9bb94383838868bead96c, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8330699176823353027, guid: c3ad454b69e9bb94383838868bead96c, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8330699176823353027, guid: c3ad454b69e9bb94383838868bead96c, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8330699176823353027, guid: c3ad454b69e9bb94383838868bead96c, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8330699176823353027, guid: c3ad454b69e9bb94383838868bead96c, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8330699176823353027, guid: c3ad454b69e9bb94383838868bead96c, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8330699176823353027, guid: c3ad454b69e9bb94383838868bead96c, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8330699176823353027, guid: c3ad454b69e9bb94383838868bead96c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8330699176823353027, guid: c3ad454b69e9bb94383838868bead96c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8330699176823353027, guid: c3ad454b69e9bb94383838868bead96c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: c3ad454b69e9bb94383838868bead96c, type: 3}
 --- !u!1 &683658619
 GameObject:
   m_ObjectHideFlags: 0
@@ -203222,7 +203279,7 @@ MonoBehaviour:
   devBypassAuthentication: 0
   devBypassSignup: 0
   clearTokenOnStart: 0
-  autoFillSignupData: 1
+  autoFillSignupData: 0
   devEmail: xynova.net@gmail.com
   devPassword: 787890
   devBypassToken: DEV_TOKEN
@@ -249104,3 +249161,4 @@ SceneRoots:
   - {fileID: 1055681435}
   - {fileID: 959773791}
   - {fileID: 397829292}
+  - {fileID: 682451996}

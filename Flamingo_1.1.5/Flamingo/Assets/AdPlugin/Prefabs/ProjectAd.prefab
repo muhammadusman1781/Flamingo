@@ -223,13 +223,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 822ec2c458de33e44a2aea2efe91ab8c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _adBannerL: 
-  _adBannerR: 
-  _adBigBannerL: 
-  _adBigBannerR: 
-  _adUnitInter: 
-  _adUnitRewarded: 
-  _adUnitAppOpen: 
+  _adBannerL: ca-app-pub-3940256099942544/6300978111
+  _adBannerR: ca-app-pub-3940256099942544/6300978111
+  _adBigBannerL: ca-app-pub-3940256099942544/6300978111
+  _adBigBannerR: ca-app-pub-3940256099942544/6300978111
+  _adUnitInter: ca-app-pub-3940256099942544/1033173712
+  _adUnitRewarded: ca-app-pub-3940256099942544/5224354917
+  _adUnitAppOpen: ca-app-pub-3940256099942544/9257395921
 --- !u!114 &1478971497404960505
 MonoBehaviour:
   m_ObjectHideFlags: 0

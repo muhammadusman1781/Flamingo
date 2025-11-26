@@ -29,4 +29,5 @@ MonoBehaviour:
     gender: 
     rewards: 
     points: 0
+    grade: 0
   version: 1.0
