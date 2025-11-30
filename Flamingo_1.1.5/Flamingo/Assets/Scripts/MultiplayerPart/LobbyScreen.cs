@@ -333,7 +333,24 @@ public class LobbyScreen : MonoBehaviour
     private void OnRoomStatusCheckFail(string error)
     {
         Debug.LogError($"Failed to check room status: {error}");
-        // Continue polling despite the error
+        
+        // Check if the error is "Room is already full"
+        // This means the other player has successfully joined the room
+        if (!string.IsNullOrEmpty(error) && error.Contains("Room is already full"))
+        {
+            Debug.Log("[OnRoomStatusCheckFail] Room is already full - this means the other player has joined!");
+            Debug.Log("Stopping polling and proceeding to gameplay...");
+            
+            // Stop polling
+            StopPolling();
+            
+            // Proceed to gameplay - QuizScreenMultiplayer will fetch questions
+            StartGameplay();
+            return;
+        }
+        
+        // For other errors, continue polling
+        Debug.LogWarning("Non-critical error, will continue polling...");
     }
 
     private void StartGameplay()

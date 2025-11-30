@@ -276,7 +276,7 @@ public class GameEndScreenMultiplayer : MonoBehaviour
         UIScreensManager uiManager = FindObjectOfType<UIScreensManager>();
         if (uiManager != null)
         {
-            uiManager.SwitchToMultiplayerGamesScreen();
+            uiManager.GoToHomeScreen();
         }
         else
         {

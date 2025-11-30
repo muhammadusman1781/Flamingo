@@ -363,6 +363,23 @@ public class SpinOption
     public string image;
 }
 
+// Spin Update Request
+[Serializable]
+public class SpinUpdateRequest
+{
+    public int id;
+    public string action; // "add" or "subtract"
+}
+
+// Spin Update Response
+[Serializable]
+public class SpinUpdateResponse
+{
+    public string status;
+    public string message;
+    public string data;
+}
+
 // Add Achievement Request
 [Serializable]
 public class AddAchievementRequest

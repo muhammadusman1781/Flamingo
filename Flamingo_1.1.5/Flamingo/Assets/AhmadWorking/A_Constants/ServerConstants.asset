@@ -20,7 +20,7 @@ MonoBehaviour:
   updateProfileURL: /auth/profile/
   spinApiURL: /auth/spins/
   UserProfileData:
-    token: 4a75b9cc5a753f7cfb0451145102f8609e0cd6d5fa32e178abc146dfbe9620d2
+    token: 93391e0483a989c66800a2550b905632bac647dd060da97b65d55b7424f25564
     email: muhammadusman1781@gmail.com
     first_name: Usman
     last_name: Hanif

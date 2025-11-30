@@ -15,7 +15,8 @@ public class FortuneWheelScreen : MonoBehaviour
     public int maxSpins = 5; // Maximum number of full rotations
 
     [Header("Wheel Slot Texts")]
-    public List<RTLTextMeshPro> slotTexts = new List<RTLTextMeshPro>(); // Assign 10 text fields for wheel slots
+    public List<Text> slotAmountTexts = new List<Text>(); // Assign text fields for amounts (e.g., "50")
+    public List<Text> slotTypeTexts = new List<Text>(); // Assign text fields for types (e.g., "Dinars")
 
     [Header("Result Display")]
     public GameObject resultPanel;
@@ -27,6 +28,8 @@ public class FortuneWheelScreen : MonoBehaviour
     private bool isSpinning = false;
     private SpinOption selectedReward;
     private float[] slotAngles; // Angles for each slot on the wheel
+
+    public Button homeButton;
 
     void Start()
     {
@@ -46,6 +49,11 @@ public class FortuneWheelScreen : MonoBehaviour
         {
             resultPanel.SetActive(false);
         }
+
+        if (homeButton != null)
+        {
+            homeButton.onClick.AddListener(OnHomeButtonClick);
+        }
     }
 
     void OnEnable()
@@ -53,7 +61,8 @@ public class FortuneWheelScreen : MonoBehaviour
         // Fetch spin options from server
         FetchSpinOptions();
         
-        // Reset wheel rotation
+        // Reset wheel rotation to 0 when screen opens
+        // Comment this out if you want to keep the wheel at its previous position
         if (wheelTransform != null)
         {
             wheelTransform.rotation = Quaternion.Euler(0, 0, 0);
@@ -143,7 +152,9 @@ public class FortuneWheelScreen : MonoBehaviour
         for (int i = 0; i < slotCount; i++)
         {
             // Calculate angle for each slot (clockwise from top)
+            // Slot 0 is at the top (0 degrees), slot 1 is at angleStep degrees, etc.
             slotAngles[i] = i * angleStep;
+            Debug.Log($"Slot {i} angle: {slotAngles[i]} degrees");
         }
 
         Debug.Log($"Calculated {slotCount} slot angles with step: {angleStep} degrees");
@@ -151,18 +162,35 @@ public class FortuneWheelScreen : MonoBehaviour
 
     void UpdateWheelSlotTexts()
     {
-        if (spinOptions == null || slotTexts == null) return;
+        if (spinOptions == null) return;
 
-        int minCount = Mathf.Min(spinOptions.Count, slotTexts.Count);
-
-        for (int i = 0; i < minCount; i++)
+        // Update amount texts
+        if (slotAmountTexts != null)
         {
-            if (slotTexts[i] != null)
+            int minCount = Mathf.Min(spinOptions.Count, slotAmountTexts.Count);
+            for (int i = 0; i < minCount; i++)
             {
-                SpinOption option = spinOptions[i];
-                string displayText = GetDisplayTextForOption(option);
-                slotTexts[i].text = displayText;
-                Debug.Log($"Slot {i}: {displayText}");
+                if (slotAmountTexts[i] != null)
+                {
+                    SpinOption option = spinOptions[i];
+                    slotAmountTexts[i].text = option.value.ToString();
+                }
+            }
+        }
+
+        // Update type texts
+        if (slotTypeTexts != null)
+        {
+            int minCount = Mathf.Min(spinOptions.Count, slotTypeTexts.Count);
+            for (int i = 0; i < minCount; i++)
+            {
+                if (slotTypeTexts[i] != null)
+                {
+                    SpinOption option = spinOptions[i];
+                    string typeText = GetTypeDisplayText(option.type);
+                    slotTypeTexts[i].text = typeText;
+                    Debug.Log($"Slot {i}: {option.value} {typeText}");
+                }
             }
         }
     }
@@ -179,6 +207,21 @@ public class FortuneWheelScreen : MonoBehaviour
                 return $"{option.value} Tabs";
             default:
                 return $"{option.value} {option.type}";
+        }
+    }
+
+    string GetTypeDisplayText(string type)
+    {
+        switch (type.ToLower())
+        {
+            case "coin":
+                return "Coins";
+            case "dinars":
+                return "Dinars";
+            case "tabs":
+                return "Tabs";
+            default:
+                return type;
         }
     }
 
@@ -261,18 +304,33 @@ public class FortuneWheelScreen : MonoBehaviour
         }
 
         // Calculate target angle
-        // The arrow is at the top (0 degrees), so we need to rotate the wheel
-        // so that the selected slot is at the top
+        // The pin is at the top (0 degrees)
+        // We need to rotate the wheel so the selected slot aligns with the pin
         float targetSlotAngle = slotAngles[selectedIndex];
         
         // Random number of full spins
         int fullSpins = Random.Range(minSpins, maxSpins + 1);
-        float totalRotation = (fullSpins * 360f) + (360f - targetSlotAngle);
+        
+        // Get current rotation normalized to 0-360 range
+        float currentRotation = wheelTransform.eulerAngles.z % 360f;
+        if (currentRotation < 0) currentRotation += 360f;
+        
+        // Calculate the target angle where we want to end up (slot aligned with pin at top)
+        // Since we rotate clockwise and slot angles are clockwise from top,
+        // we need to rotate to (360 - targetSlotAngle) to bring the slot to the top
+        float finalTargetAngle = 360f - targetSlotAngle;
+        
+        // Calculate how much we need to rotate from current position
+        // We add full spins and then rotate to the final target
+        float rotationNeeded = finalTargetAngle - currentRotation;
+        if (rotationNeeded < 0) rotationNeeded += 360f; // Ensure positive rotation
+        
+        float totalRotation = (fullSpins * 360f) + rotationNeeded;
 
-        Debug.Log($"Target slot index: {selectedIndex}, Slot angle: {targetSlotAngle}");
-        Debug.Log($"Full spins: {fullSpins}, Total rotation: {totalRotation} degrees");
+        Debug.Log($"Current rotation: {currentRotation}°, Target slot index: {selectedIndex}, Slot angle: {targetSlotAngle}°");
+        Debug.Log($"Final target: {finalTargetAngle}°, Rotation needed: {rotationNeeded}°, Full spins: {fullSpins}, Total rotation: {totalRotation}°");
 
-        // Starting rotation
+        // Starting and ending rotation
         float startRotation = wheelTransform.eulerAngles.z;
         float endRotation = startRotation + totalRotation;
 
@@ -286,8 +344,8 @@ public class FortuneWheelScreen : MonoBehaviour
             // Ease out cubic for smooth deceleration
             float easedProgress = 1f - Mathf.Pow(1f - progress, 3f);
 
-            float currentRotation = Mathf.Lerp(startRotation, endRotation, easedProgress);
-            wheelTransform.rotation = Quaternion.Euler(0, 0, currentRotation);
+            float rotationAngle = Mathf.Lerp(startRotation, endRotation, easedProgress);
+            wheelTransform.rotation = Quaternion.Euler(0, 0, rotationAngle);
 
             yield return null;
         }
@@ -319,20 +377,127 @@ public class FortuneWheelScreen : MonoBehaviour
 
     void OnClaimButtonClick()
     {
-        // Hide result panel
-        if (resultPanel != null)
+        if (selectedReward == null)
         {
-            resultPanel.SetActive(false);
+            Debug.LogError("No reward selected to claim!");
+            return;
         }
 
-        // Re-enable spin button (or implement claim logic here)
-        if (spinButton != null)
+        // Disable claim button to prevent multiple clicks
+        if (claimButton != null)
         {
-            spinButton.interactable = true;
+            claimButton.interactable = false;
         }
 
-        // TODO: Implement actual claim logic - send reward to server
-        Debug.Log("Reward claimed!");
+        Debug.Log($"Claiming reward: ID={selectedReward.id}, Type={selectedReward.type}, Value={selectedReward.value}");
+        
+        // Send claim request to server
+        ClaimReward();
+    }
+
+    void ClaimReward()
+    {
+        if (NetworkingHandler.instance == null)
+        {
+            Debug.LogError("NetworkingHandler instance is not available!");
+            OnClaimRewardFail("NetworkingHandler not available");
+            return;
+        }
+
+        if (NetworkingHandler.instance.serverConstants == null)
+        {
+            Debug.LogError("ServerConstants is not assigned!");
+            OnClaimRewardFail("ServerConstants not assigned");
+            return;
+        }
+
+        // Create request payload
+        SpinUpdateRequest request = new SpinUpdateRequest
+        {
+            id = selectedReward.id,
+            action = "add"
+        };
+
+        string jsonToSend = JsonUtility.ToJson(request);
+        string apiUrl = NetworkingHandler.instance.serverConstants.baseUrl + "/auth/spin/update/";
+
+        Debug.Log($"Claiming reward to: {apiUrl}");
+        Debug.Log($"Request payload: {jsonToSend}");
+
+        NetworkingHandler.instance.postMessage(
+            apiUrl,
+            jsonToSend,
+            isTokenNeeded: true,
+            onSuccess: OnClaimRewardSuccess,
+            onFail: OnClaimRewardFail
+        );
+    }
+
+    void OnClaimRewardSuccess(string response)
+    {
+        Debug.Log($"Reward claimed successfully: {response}");
+
+        try
+        {
+            SpinUpdateResponse claimResponse = JsonUtility.FromJson<SpinUpdateResponse>(response);
+
+            if (claimResponse != null && claimResponse.status == "success")
+            {
+                Debug.Log($"Success: {claimResponse.message}");
+                
+                // Hide result panel
+                if (resultPanel != null)
+                {
+                    resultPanel.SetActive(false);
+                }
+
+                // Re-enable spin button for next spin
+                if (spinButton != null)
+                {
+                    spinButton.interactable = true;
+                }
+
+                // Re-enable claim button
+                if (claimButton != null)
+                {
+                    claimButton.interactable = true;
+                }
+
+                // Optionally refresh user profile to update coins/dinars
+                // You might want to call a method to refresh the user's balance here
+            }
+            else
+            {
+                Debug.LogError("Claim response status is not success");
+                OnClaimRewardFail("Invalid response status");
+            }
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError($"Error parsing claim response: {ex.Message}");
+            OnClaimRewardFail($"Parse error: {ex.Message}");
+        }
+    }
+
+    void OnClaimRewardFail(string error)
+    {
+        Debug.LogError($"Failed to claim reward: {error}");
+
+        // Re-enable claim button so user can try again
+        if (claimButton != null)
+        {
+            claimButton.interactable = true;
+        }
+
+        // Optionally show error message to user
+        // ShowErrorMessage($"Failed to claim reward: {error}");
+    }
+
+    void OnHomeButtonClick()
+    {
+        // Go to home screen
+        UIScreensManager.Instance.GoToHomeScreen();
+        gameObject.SetActive(false);
     }
 
     void OnDestroy()

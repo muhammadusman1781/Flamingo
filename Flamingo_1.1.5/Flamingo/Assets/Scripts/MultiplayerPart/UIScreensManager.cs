@@ -41,4 +41,12 @@ public class UIScreensManager : MonoBehaviour
             MultiplayerGamesScreen.SetActive(true);
         }
     }
+    public void GoToHomeScreen()
+    {
+        HideAllScreens();
+        if (HomeScreen != null)
+        {
+            HomeScreen.SetActive(true);
+        }
+    }
 }

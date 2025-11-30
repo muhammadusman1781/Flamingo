@@ -19,6 +19,25 @@ public class ProfileScreen : MonoBehaviour
     public Image[] featherImages = new Image[3]; // Images for the 3 feather slots
     public RTLTextMeshPro[] featherCountTexts = new RTLTextMeshPro[3]; // Count text for each feather
     
+    [Header("Achievement Slots (The Sharp, The Clever, The Smart)")]
+    public Image[] achievementImages = new Image[3]; // Images for the 3 achievements
+    
+    [Header("Achievement Sprites")]
+    [Tooltip("Completed sprite for 'The Sharp' achievement")]
+    public Sprite theSharpCompletedSprite;
+    [Tooltip("Not completed sprite for 'The Sharp' achievement")]
+    public Sprite theSharpNotCompletedSprite;
+    
+    [Tooltip("Completed sprite for 'The Clever' achievement")]
+    public Sprite theCleverCompletedSprite;
+    [Tooltip("Not completed sprite for 'The Clever' achievement")]
+    public Sprite theCleverNotCompletedSprite;
+    
+    [Tooltip("Completed sprite for 'The Smart' achievement")]
+    public Sprite theSmartCompletedSprite;
+    [Tooltip("Not completed sprite for 'The Smart' achievement")]
+    public Sprite theSmartNotCompletedSprite;
+    
     [Header("Buttons")]
     public Button showMoreFeathersButton;
     public Button showAchievementsButton;
@@ -170,57 +189,160 @@ public class ProfileScreen : MonoBehaviour
         
         // Update feather slots
         UpdateFeatherSlots();
+        
+        // Update achievement slots
+        UpdateAchievementSlots();
     }
     
     private void UpdateFeatherSlots()
     {
-        if (currentUserProfile == null || currentUserProfile.user_feathers == null)
+        if (currentUserProfile == null)
             return;
         
-        // Sort feathers by priority
-        List<UserFeather> sortedFeathers = FeatherPriority.SortByPriority(currentUserProfile.user_feathers);
+        // Sort feathers by priority (handle null case)
+        List<UserFeather> sortedFeathers = new List<UserFeather>();
+        if (currentUserProfile.user_feathers != null && currentUserProfile.user_feathers.Count > 0)
+        {
+            sortedFeathers = FeatherPriority.SortByPriority(currentUserProfile.user_feathers);
+        }
         
         // Take top 3 feathers
         List<UserFeather> topFeathers = sortedFeathers.Take(3).ToList();
         
-        // Update each slot
+        // Update each slot - ALWAYS show all 3 slots
         for (int i = 0; i < featherSlots.Length; i++)
         {
+            // Always activate the slot
+            if (featherSlots[i] != null)
+                featherSlots[i].SetActive(true);
+            
             if (i < topFeathers.Count)
             {
-                // Show this slot with feather data
-                if (featherSlots[i] != null)
-                    featherSlots[i].SetActive(true);
-                
-                // Set feather image (you'll need to load the sprite based on feather_type)
+                // User has this feather - show with full opacity
                 if (featherImages[i] != null)
                 {
-                    // Load feather sprite - you can implement a sprite manager or use Resources
+                    // Load feather sprite
                     Sprite featherSprite = GetFeatherSprite(topFeathers[i].feather_type);
                     if (featherSprite != null)
                         featherImages[i].sprite = featherSprite;
+                    
+                    // Set full opacity
+                    Color imageColor = featherImages[i].color;
+                    imageColor.a = 1f;
+                    featherImages[i].color = imageColor;
                 }
                 
                 // Set feather count
                 if (featherCountTexts[i] != null)
+                {
                     featherCountTexts[i].text = topFeathers[i].feather.ToString();
+                    featherCountTexts[i].gameObject.SetActive(true);
+                }
             }
             else
             {
-                // Hide this slot (no feather available)
-                if (featherSlots[i] != null)
-                    featherSlots[i].SetActive(false);
+                // User doesn't have this feather - show placeholder with reduced opacity
+                if (featherImages[i] != null)
+                {
+                    // Set placeholder sprite if available, otherwise keep current sprite
+                    if (placeholderFeatherSprite != null)
+                    {
+                        featherImages[i].sprite = placeholderFeatherSprite;
+                    }
+                    
+                    // Set reduced opacity (30% opacity for empty slots)
+                    Color imageColor = featherImages[i].color;
+                    imageColor.a = 0.3f;
+                    featherImages[i].color = imageColor;
+                }
+                
+                // Hide or clear the feather count text
+                if (featherCountTexts[i] != null)
+                {
+                    featherCountTexts[i].text = "";
+                    featherCountTexts[i].gameObject.SetActive(false);
+                }
             }
         }
         
         // Show/hide "Show More" button based on feather count
         if (showMoreFeathersButton != null)
         {
-            showMoreFeathersButton.gameObject.SetActive(currentUserProfile.user_feathers.Count > 0);
+            bool hasFeathers = currentUserProfile.user_feathers != null && currentUserProfile.user_feathers.Count > 0;
+            showMoreFeathersButton.gameObject.SetActive(hasFeathers);
         }
     }
     
+    private void UpdateAchievementSlots()
+    {
+        if (currentUserProfile == null)
+            return;
+        
+        // Get user's completed achievements list
+        List<string> completedAchievements = currentUserProfile.achievements;
+        
+        // If achievements list is null, initialize as empty
+        if (completedAchievements == null)
+        {
+            completedAchievements = new List<string>();
+        }
+        
+        // Achievement 0: "The Sharp"
+        if (achievementImages.Length > 0 && achievementImages[0] != null)
+        {
+            bool isTheSharpCompleted = completedAchievements.Contains("The Sharp");
+            
+            if (isTheSharpCompleted && theSharpCompletedSprite != null)
+            {
+                achievementImages[0].sprite = theSharpCompletedSprite;
+                Debug.Log("The Sharp: COMPLETED");
+            }
+            else if (!isTheSharpCompleted && theSharpNotCompletedSprite != null)
+            {
+                achievementImages[0].sprite = theSharpNotCompletedSprite;
+                Debug.Log("The Sharp: NOT COMPLETED");
+            }
+        }
+        
+        // Achievement 1: "The Clever"
+        if (achievementImages.Length > 1 && achievementImages[1] != null)
+        {
+            bool isTheCleverCompleted = completedAchievements.Contains("The Clever");
+            
+            if (isTheCleverCompleted && theCleverCompletedSprite != null)
+            {
+                achievementImages[1].sprite = theCleverCompletedSprite;
+                Debug.Log("The Clever: COMPLETED");
+            }
+            else if (!isTheCleverCompleted && theCleverNotCompletedSprite != null)
+            {
+                achievementImages[1].sprite = theCleverNotCompletedSprite;
+                Debug.Log("The Clever: NOT COMPLETED");
+            }
+        }
+        
+        // Achievement 2: "The Smart"
+        if (achievementImages.Length > 2 && achievementImages[2] != null)
+        {
+            bool isTheSmartCompleted = completedAchievements.Contains("The Smart");
+            
+            if (isTheSmartCompleted && theSmartCompletedSprite != null)
+            {
+                achievementImages[2].sprite = theSmartCompletedSprite;
+                Debug.Log("The Smart: COMPLETED");
+            }
+            else if (!isTheSmartCompleted && theSmartNotCompletedSprite != null)
+            {
+                achievementImages[2].sprite = theSmartNotCompletedSprite;
+                Debug.Log("The Smart: NOT COMPLETED");
+            }
+        }
+        
+        Debug.Log($"Achievement slots updated. Completed achievements: {string.Join(", ", completedAchievements)}");
+    }
+    
     [Header("Feather Sprites")]
+    [SerializeField] private Sprite placeholderFeatherSprite; // Placeholder for empty slots
     [SerializeField] private Sprite legendaryFeatherSprite;
     [SerializeField] private Sprite emeraldFeatherSprite;
     [SerializeField] private Sprite rubyFeatherSprite;
