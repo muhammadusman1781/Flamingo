@@ -21,9 +21,11 @@ public class ProfileScreen : MonoBehaviour
     
     [Header("Buttons")]
     public Button showMoreFeathersButton;
+    public Button showAchievementsButton;
     
     [Header("Screens")]
     public GameObject feathersScreen; // Reference to the all feathers screen
+    public GameObject achievementsScreen; // Reference to the achievements screen
     
     [Header("Loading")]
     public GameObject loadingPanel;
@@ -47,6 +49,11 @@ public class ProfileScreen : MonoBehaviour
         if (showMoreFeathersButton != null)
         {
             showMoreFeathersButton.onClick.AddListener(OnShowMoreFeathersClicked);
+        }
+        
+        if (showAchievementsButton != null)
+        {
+            showAchievementsButton.onClick.AddListener(OnShowAchievementsClicked);
         }
     }
     
@@ -270,6 +277,24 @@ public class ProfileScreen : MonoBehaviour
             
             // Optionally hide profile screen
             // gameObject.SetActive(false);
+        }
+    }
+    
+    private void OnShowAchievementsClicked()
+    {
+        if (achievementsScreen != null)
+        {
+            Debug.Log("Opening Achievements Screen");
+            
+            // Show achievements screen
+            achievementsScreen.SetActive(true);
+            
+            // Hide profile screen
+            gameObject.SetActive(false);
+        }
+        else
+        {
+            Debug.LogError("Achievements Screen reference not set!");
         }
     }
     

@@ -189,6 +189,13 @@ public class QuizHelpManager : MonoBehaviour
         {
             Debug.Log("QuizHelpManager: Rewarded ad watched, removing two wrong answers");
             helpUsedThisLevel = true;
+            
+            // Track help usage for achievements
+            if (AchievementTracker.Instance != null)
+            {
+                AchievementTracker.Instance.OnHelpUsed();
+            }
+            
             OnRemoveTwoAnswersClicked();
         },
         () =>
@@ -224,6 +231,12 @@ public class QuizHelpManager : MonoBehaviour
 
     private void OnRemoveTwoAnswersClicked()
     {
+        // Track help usage for achievements (if not already tracked)
+        if (AchievementTracker.Instance != null && !helpUsedThisLevel)
+        {
+            AchievementTracker.Instance.OnHelpUsed();
+        }
+        
         if (quizController == null)
         {
             Debug.LogError("QuizHelpManager: QuizUIController is null!");
@@ -303,6 +316,12 @@ public class QuizHelpManager : MonoBehaviour
 
     private void OnShowHintClicked()
     {
+        // Track help usage for achievements
+        if (AchievementTracker.Instance != null)
+        {
+            AchievementTracker.Instance.OnHelpUsed();
+        }
+        
         if (quizController == null)
         {
             Debug.LogError("QuizHelpManager: QuizUIController is null!");
@@ -353,6 +372,12 @@ public class QuizHelpManager : MonoBehaviour
 
     private void OnSkipQuestionClicked()
     {
+        // Track help usage for achievements
+        if (AchievementTracker.Instance != null)
+        {
+            AchievementTracker.Instance.OnHelpUsed();
+        }
+        
         if (quizController == null)
         {
             Debug.LogError("QuizHelpManager: QuizUIController is null!");

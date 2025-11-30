@@ -8,30 +8,47 @@ public class GameEndScreenMultiplayer : MonoBehaviour
     [Header("References")]
     public QuizScreenMultiplayer quizScreen;
 
-    [Header("UI Elements")]
-    public Text waitingText;
-    public Text winnerNameText;
-    public Text resultText; // "You Win" or "You Lose"
+    [Header("UI GameObjects")]
+    public GameObject waitingForOtherPlayerGameObject;
+    public GameObject winGameObject;
+    public GameObject loseGameObject;
+
+    [Header("Buttons")]
+    public Button continueButton; // On win screen
+    public Button restartButton; // On lose screen
 
     // Private variables
     private string roomSlug;
     private int playerScore;
+    private int timeTaken;
     private bool isWaitingForResults = true;
     private Coroutine checkResultsCoroutine;
 
     void OnEnable()
     {
-        // Get the slug and score from quiz screen
+        // Get the slug, score, and time from quiz screen
         if (quizScreen != null)
         {
             roomSlug = quizScreen.roomSlug;
             playerScore = quizScreen.playerScore;
+            timeTaken = quizScreen.totalTimeTaken;
         }
 
-        // Reset UI
-        if (waitingText != null) waitingText.gameObject.SetActive(true);
-        if (winnerNameText != null) winnerNameText.gameObject.SetActive(false);
-        if (resultText != null) resultText.gameObject.SetActive(false);
+        // Setup button listeners
+        if (continueButton != null)
+        {
+            continueButton.onClick.RemoveAllListeners();
+            continueButton.onClick.AddListener(OnContinueClicked);
+        }
+
+        if (restartButton != null)
+        {
+            restartButton.onClick.RemoveAllListeners();
+            restartButton.onClick.AddListener(OnRestartClicked);
+        }
+
+        // Show only waiting screen initially
+        ShowWaitingScreen();
 
         // Submit score and start checking for results
         SubmitScore();
@@ -49,9 +66,10 @@ public class GameEndScreenMultiplayer : MonoBehaviour
         
         SubmitScoreRequest request = new SubmitScoreRequest();
         request.score = playerScore;
+        request.time = timeTaken;
         string jsonData = JsonUtility.ToJson(request);
 
-        Debug.Log("Submitting score: " + playerScore + " to " + apiUrl);
+        Debug.Log("Submitting score: " + playerScore + " and time: " + timeTaken + " seconds to " + apiUrl);
 
         NetworkingHandler.instance.postMessage(
             apiUrl,
@@ -89,12 +107,7 @@ public class GameEndScreenMultiplayer : MonoBehaviour
     IEnumerator CheckResultsRoutine()
     {
         isWaitingForResults = true;
-
-        if (waitingText != null)
-        {
-            waitingText.text = "Waiting for other player to finish...";
-            waitingText.gameObject.SetActive(true);
-        }
+        ShowWaitingScreen();
 
         while (isWaitingForResults)
         {
@@ -174,46 +187,100 @@ public class GameEndScreenMultiplayer : MonoBehaviour
         Debug.Log("Winner: " + data.winner_name);
         Debug.Log("===================");
 
-        // Hide waiting text
-        if (waitingText != null)
-        {
-            waitingText.gameObject.SetActive(false);
-        }
-
-        // Show winner name
-        if (winnerNameText != null)
-        {
-            if(data.result == "win")
-            {
-                winnerNameText.text = "Winner: " + data.user_name;
-            }
-            else if(data.result == "lose")
-            {
-                winnerNameText.text = "Winner: " + data.opponent_name;
-            }
-            winnerNameText.gameObject.SetActive(true);
-        }
-
-        // Show result (win/lose/tie)
-        if (resultText != null)
+        // Track achievements based on result
+        if (AchievementTracker.Instance != null)
         {
             if (data.result == "win")
             {
-                resultText.text = "You Win!";
+                AchievementTracker.Instance.OnMultiplayerWin();
             }
             else if (data.result == "lose")
             {
-                resultText.text = "You Lose!";
+                AchievementTracker.Instance.OnMultiplayerLoss();
             }
-            else if (data.result == "tie")
-            {
-                resultText.text = "It's a Tie!";
-            }
-            else
-            {
-                resultText.text = "Game Over";
-            }
-            resultText.gameObject.SetActive(true);
+            // Tie doesn't affect win streak
+        }
+
+        // Show appropriate screen based on result
+        if (data.result == "win")
+        {
+            ShowWinScreen();
+        }
+        else if (data.result == "lose")
+        {
+            ShowLoseScreen();
+        }
+        else if (data.result == "tie")
+        {
+            // For tie, show win screen (both players continue)
+            ShowWinScreen();
+        }
+        else
+        {
+            // Default to lose screen for unknown results
+            ShowLoseScreen();
+        }
+    }
+
+    void ShowWaitingScreen()
+    {
+        if (waitingForOtherPlayerGameObject != null)
+            waitingForOtherPlayerGameObject.SetActive(true);
+        
+        if (winGameObject != null)
+            winGameObject.SetActive(false);
+        
+        if (loseGameObject != null)
+            loseGameObject.SetActive(false);
+    }
+
+    void ShowWinScreen()
+    {
+        if (waitingForOtherPlayerGameObject != null)
+            waitingForOtherPlayerGameObject.SetActive(false);
+        
+        if (winGameObject != null)
+            winGameObject.SetActive(true);
+        
+        if (loseGameObject != null)
+            loseGameObject.SetActive(false);
+    }
+
+    void ShowLoseScreen()
+    {
+        if (waitingForOtherPlayerGameObject != null)
+            waitingForOtherPlayerGameObject.SetActive(false);
+        
+        if (winGameObject != null)
+            winGameObject.SetActive(false);
+        
+        if (loseGameObject != null)
+            loseGameObject.SetActive(true);
+    }
+
+    void OnContinueClicked()
+    {
+        Debug.Log("Continue button clicked - Going to home screen");
+        GoToHomeScreen();
+    }
+
+    void OnRestartClicked()
+    {
+        Debug.Log("Restart button clicked - Going to home screen");
+        GoToHomeScreen();
+    }
+
+    void GoToHomeScreen()
+    {
+        // Find UIScreensManager and switch to home/multiplayer games screen
+        UIScreensManager uiManager = FindObjectOfType<UIScreensManager>();
+        if (uiManager != null)
+        {
+            uiManager.SwitchToMultiplayerGamesScreen();
+        }
+        else
+        {
+            Debug.LogError("UIScreensManager not found!");
         }
     }
 
@@ -226,5 +293,12 @@ public class GameEndScreenMultiplayer : MonoBehaviour
             checkResultsCoroutine = null;
         }
         isWaitingForResults = false;
+
+        // Clean up button listeners
+        if (continueButton != null)
+            continueButton.onClick.RemoveAllListeners();
+        
+        if (restartButton != null)
+            restartButton.onClick.RemoveAllListeners();
     }
 }

@@ -111,6 +111,7 @@ public class QuestionMultiplayer
 public class SubmitScoreRequest
 {
     public int score;
+    public int time; // Time taken in seconds
 }
 
 // Submit Score Response (generic response)
@@ -255,6 +256,8 @@ public class UserProfileData
     public int lose;
     public int friends_count;
     public List<UserFeather> user_feathers;
+    public List<string> achievements;
+    public int continuous_wins;
 }
 
 [Serializable]
@@ -336,6 +339,41 @@ public class RemainingPlayer
 // Delete Room Response
 [Serializable]
 public class DeleteRoomResponse
+{
+    public string status;
+    public string message;
+}
+
+// Fortune Wheel Response
+[Serializable]
+public class FortuneWheelResponse
+{
+    public string status;
+    public string message;
+    public List<SpinOption> data;
+}
+
+[Serializable]
+public class SpinOption
+{
+    public int id;
+    public int value;
+    public string type; // "coin", "dinars", "tabs"
+    public string percentage;
+    public string image;
+}
+
+// Add Achievement Request
+[Serializable]
+public class AddAchievementRequest
+{
+    public string achievement;
+    public int coin;
+}
+
+// Add Achievement Response
+[Serializable]
+public class AddAchievementResponse
 {
     public string status;
     public string message;

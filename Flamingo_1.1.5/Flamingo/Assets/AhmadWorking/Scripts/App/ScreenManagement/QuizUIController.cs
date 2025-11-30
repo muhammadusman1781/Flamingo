@@ -228,6 +228,12 @@ public class QuizUIController : MonoBehaviour
         continueUsedThisLevel = false;
         awaitingContinueAfterLoss = false;
 
+        // Notify achievement tracker that a new stage started
+        if (AchievementTracker.Instance != null)
+        {
+            AchievementTracker.Instance.OnStageStarted();
+        }
+
         ShuffleQuestions();
         UpdateLevelUI();
         LoadQuestion();
@@ -324,11 +330,23 @@ public class QuizUIController : MonoBehaviour
             SoundsManager.Instance.PlayAnswerTrueSound();
             correctAnswers++;
             score += 10;
+            
+            // Track achievement progress - correct answer without help
+            if (AchievementTracker.Instance != null)
+            {
+                AchievementTracker.Instance.OnQuestionAnsweredCorrectWithoutHelp();
+            }
         }
         else
         {
             SoundsManager.Instance.PlayAnswerFalseSound();
             wrongAnswers++;
+            
+            // Track achievement progress - wrong answer (resets streak)
+            if (AchievementTracker.Instance != null)
+            {
+                AchievementTracker.Instance.OnQuestionAnsweredIncorrectOrHelpUsed();
+            }
             
             if (!continueUsedThisLevel && note != null)
             {
@@ -576,6 +594,12 @@ public class QuizUIController : MonoBehaviour
         {
             LevelManager.Instance.CompleteLevel(currentLevelNumber);
         }
+        
+        // Track achievement progress - stage completed
+        if (AchievementTracker.Instance != null)
+        {
+            AchievementTracker.Instance.OnStageCompleted();
+        }
 
         ShowFinalResult();
     }
@@ -662,6 +686,12 @@ public class QuizUIController : MonoBehaviour
                 }
                 
                 wrongAnswers++;
+                
+                // Track achievement progress - time up (resets streak)
+                if (AchievementTracker.Instance != null)
+                {
+                    AchievementTracker.Instance.OnQuestionAnsweredIncorrectOrHelpUsed();
+                }
 
                 if (!continueUsedThisLevel && note != null)
                 {

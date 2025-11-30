@@ -32,4 +32,13 @@ public class UIScreensManager : MonoBehaviour
             screen.SetActive(false);
         }
     }
+
+    public void SwitchToMultiplayerGamesScreen()
+    {
+        HideAllScreens();
+        if (MultiplayerGamesScreen != null)
+        {
+            MultiplayerGamesScreen.SetActive(true);
+        }
+    }
 }

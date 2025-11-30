@@ -10,14 +10,17 @@ public class HomeScreen : MonoBehaviour
     public GameObject FemaleIcon;
     public Image XpBar;
     public GameObject BottomBar;
+    public Button FortuneWheelButton;
     
     [Header("Loading")]
     public GameObject loadingPanel;
+    public GameObject FortuneWheelPanel;
 
     private void OnEnable()
     {
         // Load user profile first
         LoadUserProfile();
+        FortuneWheelButton.onClick.AddListener(OnFortuneWheelButtonClick);
     }
     
     private void LoadUserProfile()
@@ -100,5 +103,11 @@ public class HomeScreen : MonoBehaviour
         }
         
         BottomBar.SetActive(true);
+    }
+
+    private void OnFortuneWheelButtonClick()
+    {
+        Debug.Log("FortuneWheelButton clicked");
+        FortuneWheelPanel.SetActive(true);
     }
 }
