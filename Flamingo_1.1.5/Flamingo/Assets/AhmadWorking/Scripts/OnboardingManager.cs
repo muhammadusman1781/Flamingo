@@ -331,7 +331,7 @@ public class OnboardingManager : MonoBehaviour
         // Use AuthenticationManager for login
         if (AuthenticationManager != null)
         {
-            AuthenticationManager.login();
+            AuthenticationManager.login(emailPhone, password);
         }
         else
         {

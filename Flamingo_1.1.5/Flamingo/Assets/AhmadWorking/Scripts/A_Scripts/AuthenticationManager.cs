@@ -11,6 +11,8 @@ public class AuthenticationManager : MonoBehaviour
     public ServerConstants serverConstants;
     [Header("Notification Handling")]
     public NotificationManager note;
+
+    public bool testLogin = false;
     private void Start()
     {
         print("Start is working");
@@ -19,11 +21,19 @@ public class AuthenticationManager : MonoBehaviour
     }
     // AuthenticationManager.cs
 
-    public void login()
+    public void login(string email, string password)
     {
         LoginPostBody loginPostBody = new LoginPostBody();
-        loginPostBody.email = "muhammadusman1781@gmail.com";
-        loginPostBody.password = "Mani4560.";
+        if(testLogin)
+        {
+            loginPostBody.email = "muhammadusman1781@gmail.com";
+            loginPostBody.password = "Mani4560.";
+        }
+        else
+        {
+            loginPostBody.email = email;
+            loginPostBody.password = password;
+        }
 
         string jsonToSend = JsonUtility.ToJson(loginPostBody);
         NetworkingHandler.instance.postMessage(serverConstants.baseUrl + serverConstants.loginApiURL, jsonToSend, false,
